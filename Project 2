@@ -1,0 +1,139 @@
+import requests
+import json 
+from itertools import permutations
+headers = {
+		'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
+		'referrer': 'https://google.com',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/json',
+        'Accept-Encoding': 'gzip, deflate, br,identity',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Pragma': 'no-cache',
+        # 'X-MyHeader':'123',
+}
+
+class City():
+	"""docstring for City"""
+	# Contains the details of a class with temperature day and name 
+	def __init__(self,name,temperature,day):
+		self.name  = name
+		self.temp  = temperature
+		self.day   = day
+	def get_temperature(self):
+		return self.temp
+	def get_day(self):
+		return self.day
+
+	def __str__(self):
+		return self.name
+
+
+	
+
+
+class Route():
+	"""docstring for Route"""
+	# Contains the details of a Route(path)  
+	def __init__(self, path_list):
+		self.path = path_list
+		# Average temeperature of a path 
+	def calculate_average_temperature(self):
+		avergae_temp=0
+		for x in  self.path:
+			avergae_temp=avergae_temp+x.get_temperature()
+
+		avergae_temp=avergae_temp/len(self.path)
+		# print("average_temp  ",avergae_temp)
+		return avergae_temp
+
+
+# Prints the path 
+	def print_path(self):
+		print("Path for cities ")
+		# print(self.path)
+		for x in range(len(self.path)):
+			print("{} . {} ".format(x,self.path[x]))
+
+
+
+
+
+
+
+
+def get_city_temperatures(Id,api_key):
+	url='http://api.openweathermap.org/data/2.5/forecast?id={}&cnt=5&APPID={}'.format(Id,api_key)
+	# print(url)
+	response=requests.get(url,headers=headers)
+	json_data=response.json()
+	# print(json_data)
+	list_days=json_data['list']
+	temperatures=[]
+	for x in list_days:
+		# print(x)
+		temperatures.append(x['main']['temp_max'])
+	# print(temperatures)
+	city_name=json_data['city']['name']
+	return city_name,temperatures
+#  generates 120 permutations of the 5 cities data of 5 days fact(5)
+def get_permutation(city_list):
+	daily_data={0:[] ,1:[],2:[],3:[],4:[]}
+	for x in range(len(city_list)):
+		daily_data[city_list[x].get_day()].append(city_list[x])
+	# print(daily_data)	
+	# print(daily_data)
+	#  generating permutations using list comprehension:
+	permutations=[]
+	for i in range(len(daily_data[0])):
+		for j in range(len(daily_data[1])):
+			if i!=j:
+				for k in range(len(daily_data[2])):
+					if k!=j and k!=i :
+						for m in range(len(daily_data[3])):
+							if m!=k and m!=j and m!=i:
+								for n in range(len(daily_data[4])):
+									permute=[]
+									if n!=m and n!=k and n!=j and n!=i:
+										permute=[daily_data[0][i],daily_data[1][j],daily_data[2][k],daily_data[3][m],daily_data[4][n]]
+										permutations.append(permute)
+	# print(permutations)
+	# print(len(permutations))
+	return permutations
+
+
+
+
+
+
+#  main function
+
+
+
+if __name__ == '__main__':
+	# city id 
+	city_id=	[5313667,5294810,5318313,5308655,5301388]
+	# api key to get json data  
+	api_key='731e244b6fd934fbf1115037f8643de5'
+	#  list containing city data 
+	city_list=[]
+
+	# fetching max temperature for each city and day 	 
+	for x in range(0,5):
+		name,temperatures=get_city_temperatures(city_id[x],api_key)
+		for y in range(len(temperatures)):
+			city_list.append(City(name,temperatures[y],y))
+	# print(city_list)
+	# getting all permutations of the path 
+	permutations=get_permutation(city_list)
+	min_average=100000000
+	min_path=0
+	#  finding minimum permutaion and printing the path 
+	for x in range(len(permutations)):
+		path=Route(permutations[x])
+		avg=path.calculate_average_temperature()
+		# print(avg)
+		if min_average>avg:
+			min_average=avg
+			min_path=path
+	print("Minimum Average found :{} ".format(min_average))
+	path.print_path()
+
